@@ -1,0 +1,46 @@
+{
+  "name": "@kud/macos-nowplaying-bridge",
+  "version": "0.1.0",
+  "description": "Publish Now Playing metadata to macOS Control Center and receive its media-button events, from Node",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kud/macos-nowplaying-bridge.git"
+  },
+  "keywords": [
+    "macos",
+    "now-playing",
+    "control-center",
+    "mpnowplayinginfocenter",
+    "media-control"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "native/nowplaying-bridge.swift"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "26.0.0",
+    "tsup": "8.5.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
+  }
+}
