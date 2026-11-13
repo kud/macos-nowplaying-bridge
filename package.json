@@ -8,6 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/kud/macos-nowplaying-bridge.git"
   },
+  "homepage": "https://kud.io/projects/macos-nowplaying-bridge",
   "keywords": [
     "macos",
     "now-playing",
