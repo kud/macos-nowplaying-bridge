@@ -17,7 +17,7 @@
 - **Media-button events** — play, pause, toggle, next, and previous button presses from Control Center (or media keys) are forwarded back to Node as typed events.
 - **Rich metadata** — push title, artist, album, artwork URL, duration, elapsed time, playback rate, and play/pause state; updates merge, so fields you omit keep their last value, and artwork appears once its download finishes.
 - **Zero runtime npm dependencies** — ships a Swift source file compiled lazily on first call with `swiftc` and wrapped in a minimal `.app` bundle (macOS only lists a process in Now Playing when it lives in a bundle with a bundle identifier).
-- **No prebuilt binaries** — on-demand compilation means no architecture-specific blobs and no native binding steps; the compiled helper is cached under `$TMPDIR/macos-nowplaying-bridge/` for subsequent runs.
+- **No prebuilt binaries** — on-demand compilation means no architecture-specific blobs and no native binding steps; the compiled helper is cached under `$TMPDIR/macos-nowplaying-bridge/`, keyed by a hash of the Swift source, so an upgrade rebuilds it once and later runs start immediately.
 - **macOS only, deliberately** — the `"os": ["darwin"]` field in `package.json` stops npm installing it elsewhere, and `createNowPlayingBridge()` rejects on any other platform.
 
 ## Install

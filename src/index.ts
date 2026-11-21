@@ -1,10 +1,10 @@
 import { execFile, spawn } from "node:child_process"
-import { existsSync } from "node:fs"
-import { mkdir, writeFile } from "node:fs/promises"
+import { readFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
-import { dirname, join } from "node:path"
+import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
+import { ensureHelper } from "./cache.js"
 import { initialRateMemory, resolveRate } from "./rate.js"
 import type { NowPlayingBridge, RemoteEvent } from "./types.js"
 
@@ -15,12 +15,7 @@ export type { NowPlayingBridge, NowPlayingInfo, RemoteEvent } from "./types.js"
 const sourcePath = fileURLToPath(
   new URL("../native/nowplaying-bridge.swift", import.meta.url),
 )
-const bundleDir = join(
-  tmpdir(),
-  "macos-nowplaying-bridge",
-  "NowPlayingBridge.app",
-)
-const binaryPath = join(bundleDir, "Contents", "MacOS", "nowplaying-bridge")
+const cacheDir = join(tmpdir(), "macos-nowplaying-bridge")
 
 const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -36,21 +31,24 @@ const infoPlist = `<?xml version="1.0" encoding="UTF-8"?>
 `
 
 // macOS only surfaces a process in Now Playing when it lives in a bundle with a
-// CFBundleIdentifier, so the compiled binary is wrapped in a minimal .app before launch.
-const ensureBundle = async (): Promise<string> => {
-  if (existsSync(binaryPath)) return binaryPath
-  await mkdir(dirname(binaryPath), { recursive: true })
-  await exec("swiftc", [
-    "-O",
-    "-swift-version",
-    "5",
-    sourcePath,
-    "-o",
-    binaryPath,
-  ])
-  await writeFile(join(bundleDir, "Contents", "Info.plist"), infoPlist)
-  return binaryPath
-}
+// CFBundleIdentifier, so the compiled binary is wrapped in a minimal .app before
+// launch. The bundle is cached per Swift source hash, so an upgrade rebuilds it.
+const ensureBundle = async (): Promise<string> =>
+  ensureHelper({
+    cacheDir,
+    source: await readFile(sourcePath),
+    infoPlist,
+    compile: async (outputPath) => {
+      await exec("swiftc", [
+        "-O",
+        "-swift-version",
+        "5",
+        sourcePath,
+        "-o",
+        outputPath,
+      ])
+    },
+  })
 
 /**
  * Spawn a faceless macOS Now Playing bridge as a persistent co-process. Hand it

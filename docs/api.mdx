@@ -20,7 +20,7 @@ import {
 createNowPlayingBridge(): Promise<NowPlayingBridge>
 ```
 
-Compiles the Swift source if no cached binary exists, then spawns it as a persistent co-process and resolves with the bridge. The first call per machine waits for `swiftc`; later calls start immediately. See [How it works](/projects/macos-nowplaying-bridge/docs/how-it-works).
+Compiles the Swift source if no cached binary exists for its current hash, then spawns it as a persistent co-process and resolves with the bridge. The first call per machine, and the first after an upgrade that changes the Swift source, waits for `swiftc`; later calls start immediately. See [How it works](/projects/macos-nowplaying-bridge/docs/how-it-works).
 
 It rejects with `@kud/macos-nowplaying-bridge only works on macOS` when `process.platform` is not `darwin`, and with the `swiftc` error if compilation fails.
 
