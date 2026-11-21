@@ -13,12 +13,12 @@
 
 ## Features
 
-- **Control Center ownership** — claims the Now Playing slot via a silent audio session, so your app's track info appears in Control Center regardless of what other apps are doing.
+- **Control Center ownership** — claims the Now Playing slot by playing a silent, looping audio buffer, so your track info appears in Control Center even though the Node process itself plays nothing.
 - **Media-button events** — play, pause, toggle, next, and previous button presses from Control Center (or media keys) are forwarded back to Node as typed events.
-- **Rich metadata** — push title, artist, album, artwork URL, duration, elapsed time, playback rate, and play/pause state; Control Center reflects changes immediately.
-- **Zero npm dependencies** — ships a Swift source file compiled lazily on first call with `swiftc` and wrapped in a minimal `.app` bundle (required by macOS for Now Playing access).
-- **No prebuilt binaries** — on-demand compilation means no architecture-specific blobs and no native binding steps; the binary is cached in `$TMPDIR` for subsequent runs.
-- **macOS only, deliberately** — the `"os": ["darwin"]` guard in `package.json` prevents accidental installation on unsupported platforms.
+- **Rich metadata** — push title, artist, album, artwork URL, duration, elapsed time, playback rate, and play/pause state; updates merge, so fields you omit keep their last value, and artwork appears once its download finishes.
+- **Zero runtime npm dependencies** — ships a Swift source file compiled lazily on first call with `swiftc` and wrapped in a minimal `.app` bundle (macOS only lists a process in Now Playing when it lives in a bundle with a bundle identifier).
+- **No prebuilt binaries** — on-demand compilation means no architecture-specific blobs and no native binding steps; the compiled helper is cached under `$TMPDIR/macos-nowplaying-bridge/` for subsequent runs.
+- **macOS only, deliberately** — the `"os": ["darwin"]` field in `package.json` stops npm installing it elsewhere, and `createNowPlayingBridge()` rejects on any other platform.
 
 ## Install
 
@@ -26,7 +26,7 @@
 npm install @kud/macos-nowplaying-bridge
 ```
 
-Requires macOS and Node.js ≥ 20. `swiftc` must be available (ships with Xcode Command Line Tools).
+Requires macOS and Node.js ≥ 20, plus `swiftc` on your `PATH`. It ships with the Xcode Command Line Tools (`xcode-select --install`). The helper is compiled on the first call, which therefore takes a few seconds; if `swiftc` is missing, that call rejects with the compiler error.
 
 ## Usage
 
@@ -58,11 +58,11 @@ bridge.stop()
 
 #### `createNowPlayingBridge(): Promise<NowPlayingBridge>`
 
-Compiles and spawns the Swift co-process on first call (subsequent calls reuse the cached binary). Throws on non-macOS platforms.
+Compiles the Swift helper if no cached copy exists, then spawns it as a co-process. Later calls reuse the cached binary, but each call spawns its own co-process, so create one bridge and share it. Rejects on non-macOS platforms and when compilation fails.
 
 #### `bridge.update(info: NowPlayingInfo): void`
 
-Pushes a metadata update. All fields except `title` are optional.
+Writes a metadata update to the co-process; it returns immediately and does not report errors. All fields except `title` are optional, and omitted fields keep their previously published value.
 
 | Field        | Type                    | Description                          |
 | ------------ | ----------------------- | ------------------------------------ |
@@ -83,7 +83,7 @@ Registers a handler for a media-button event. Multiple handlers per event are su
 
 #### `bridge.stop(): void`
 
-Kills the Swift co-process and releases the Now Playing slot.
+Kills the Swift co-process and releases the Now Playing slot. The co-process also exits on its own when its stdin closes, so it does not outlive a crashed Node process.
 
 ## Development
 
