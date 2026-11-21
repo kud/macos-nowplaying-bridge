@@ -78,7 +78,10 @@ final class Bridge {
     if let elapsed = command["elapsed"] as? Double {
       info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = elapsed
     }
-    info[MPNowPlayingInfoPropertyPlaybackRate] = (command["rate"] as? Double) ?? 1.0
+    // Only touch the rate when the update carries one; the Node side resolves it.
+    if let rate = command["rate"] as? Double {
+      info[MPNowPlayingInfoPropertyPlaybackRate] = rate
+    }
     MPNowPlayingInfoCenter.default().nowPlayingInfo = info
 
     if let state = command["state"] as? String {

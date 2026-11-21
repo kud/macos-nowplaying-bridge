@@ -5,27 +5,12 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { promisify } from "node:util"
+import { initialRateMemory, resolveRate } from "./rate.js"
+import type { NowPlayingBridge, RemoteEvent } from "./types.js"
 
 const exec = promisify(execFile)
 
-export type NowPlayingInfo = {
-  title: string
-  artist?: string
-  album?: string
-  artworkUrl?: string
-  duration?: number
-  elapsed?: number
-  rate?: number
-  state?: "playing" | "paused"
-}
-
-export type RemoteEvent = "play" | "pause" | "toggle" | "next" | "previous"
-
-export type NowPlayingBridge = {
-  update: (info: NowPlayingInfo) => void
-  on: (event: RemoteEvent, handler: () => void) => void
-  stop: () => void
-}
+export type { NowPlayingBridge, NowPlayingInfo, RemoteEvent } from "./types.js"
 
 const sourcePath = fileURLToPath(
   new URL("../native/nowplaying-bridge.swift", import.meta.url),
@@ -81,6 +66,7 @@ export const createNowPlayingBridge = async (): Promise<NowPlayingBridge> => {
   const child = spawn(binary, { stdio: ["pipe", "pipe", "inherit"] })
   const handlers = new Map<RemoteEvent, Set<() => void>>()
 
+  let rateMemory = initialRateMemory
   let buffer = ""
   child.stdout?.setEncoding("utf8")
   child.stdout?.on("data", (chunk: string) => {
@@ -103,7 +89,10 @@ export const createNowPlayingBridge = async (): Promise<NowPlayingBridge> => {
 
   return {
     update: (info) => {
-      child.stdin?.write(`${JSON.stringify(info)}\n`)
+      rateMemory = resolveRate(rateMemory, info)
+      child.stdin?.write(
+        `${JSON.stringify({ ...info, rate: rateMemory.rate })}\n`,
+      )
     },
     on: (event, handler) => {
       const set = handlers.get(event) ?? new Set()

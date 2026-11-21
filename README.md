@@ -64,16 +64,16 @@ Compiles the Swift helper if no cached copy exists, then spawns it as a co-proce
 
 Writes a metadata update to the co-process; it returns immediately and does not report errors. All fields except `title` are optional, and omitted fields keep their previously published value.
 
-| Field        | Type                    | Description                          |
-| ------------ | ----------------------- | ------------------------------------ |
-| `title`      | `string`                | Track title (required)               |
-| `artist`     | `string`                | Artist name                          |
-| `album`      | `string`                | Album name                           |
-| `artworkUrl` | `string`                | Remote or `file://` artwork URL      |
-| `duration`   | `number`                | Total track length in seconds        |
-| `elapsed`    | `number`                | Current playback position in seconds |
-| `rate`       | `number`                | Playback rate (`1.0` = normal speed) |
-| `state`      | `"playing" \| "paused"` | Playback state                       |
+| Field        | Type                    | Description                                                                             |
+| ------------ | ----------------------- | --------------------------------------------------------------------------------------- |
+| `title`      | `string`                | Track title (required)                                                                  |
+| `artist`     | `string`                | Artist name                                                                             |
+| `album`      | `string`                | Album name                                                                              |
+| `artworkUrl` | `string`                | Remote or `file://` artwork URL                                                         |
+| `duration`   | `number`                | Total track length in seconds                                                           |
+| `elapsed`    | `number`                | Current playback position in seconds                                                    |
+| `rate`       | `number`                | Playback rate (`1.0` = normal speed); kept between updates, `0` when paused without one |
+| `state`      | `"playing" \| "paused"` | Playback state                                                                          |
 
 #### `bridge.on(event: RemoteEvent, handler: () => void): void`
 
