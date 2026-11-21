@@ -1,6 +1,6 @@
 {
   "name": "@kud/macos-nowplaying-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Publish Now Playing metadata to macOS Control Center and receive its media-button events, from Node",
   "type": "module",
   "license": "MIT",
